@@ -2,12 +2,14 @@
 import sys
 from bs4 import BeautifulSoup
 import re
+import csv
 
 with open(str(sys.argv[1]), 'r', encoding="utf8") as file:
     data = file.read()
 file_name = re.sub(r"[.\\]|gpx", '', str(sys.argv[1]))
 bs_data = BeautifulSoup(data, 'xml')
 xml_caches = bs_data.find_all('wpt')
+csv_lines = []
 with open(file_name+'_codes.txt', 'w', encoding="utf8") as file:
     for cache in xml_caches:
         gc_code = cache.find('name').text
@@ -22,3 +24,9 @@ with open(file_name+'_codes.txt', 'w', encoding="utf8") as file:
         formatted_string = "{gc_code} {gc_name} {gc_url} N{lat_degrees:d}° {lat_minutes:5.3f}' E{lon_degrees:03d}° {lon_minutes:5.3f}'".format(
             gc_code=gc_code, gc_name=gc_name, gc_url=gc_url, lat_degrees=lat_degrees, lat_minutes=lat_minutes, lon_degrees=lon_degrees, lon_minutes=lon_minutes)
         file.write(formatted_string)
+        csv_lines.append([gc_code,gc_name,gc_url,f"N{lat_degrees:d}° {lat_minutes:5.3f}' E{lon_degrees:03d}° {lon_minutes:5.3f}'"])
+
+with open(file_name+'_codes.csv', 'w', encoding="utf8") as file:
+    csvwriter = csv.writer(file)
+    csvwriter.writerow(['gc_code,gc_name,gc_url,coordinates'])
+    csvwriter.writerows(csv_lines)
